@@ -1,0 +1,1 @@
+# Flagship Project: Modern Data Pipeline (API → Warehouse → Analytics)
