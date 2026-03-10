@@ -62,9 +62,9 @@ def fetch_api(endpoint):
             response.raise_for_status() #fails if api is down
             logging.info(f"Fetched {endpoint}")
             return response.json()
-    expect Exception as e:
-        logging.warning(f"Attempt {attempt+1} failed: {e}")
-        time.sleep(2)
+        except Exception as e:
+            logging.warning(f"Attempt {attempt+1} failed: {e}")
+            time.sleep(2)
     raise Exception(f"Failed to fetch {endpoint}")    
 
 # -------------
@@ -102,9 +102,9 @@ def ensure_table(table_id, df):
         for col in df.columns:
             dtype = "STRING"
 
-            if pd.api.type.is_integer_dtype(df[col]):
+            if pd.api.types.is_integer_dtype(df[col]):
                 dtype = "INT64" 
-            elif pd.api.type.is_float_dtype(df[col]):
+            elif pd.api.types.is_float_dtype(df[col]):
                 dtype = "FLOAT64" 
             schema.append(bigquery.SchemaField(col, dtype))
 
@@ -118,7 +118,7 @@ def ensure_table(table_id, df):
 
 def load_to_bq(df, table_id):
     job = client.load_table_from_dataframe(df, table_id)
-    job.results()
+    job.result()
     logging.info(f"Loaded {len(df)} rows into {table_id}")
 
 # -------------
@@ -128,6 +128,11 @@ def load_to_bq(df, table_id):
 def process_carts(data):
     carts_df = pd.json_normalize(data)
     carts_df.columns = carts_df.columns.str.replace(".", "_")
+
+    # This prevents the pyarrow.lib.ArrowTypeError
+    if "products" in carts_df.columns:
+        carts_df["products"] = carts_df["products"].apply(json.dumps)
+
     carts_products = []
 
     for cart in data:
@@ -147,12 +152,37 @@ def process_carts(data):
 # Extract
 # -------------
 
+def extract_endpoint(name, endpoint):
+    data = fetch_api(endpoint)
+
+    if name == "carts":
+        carts_df, carts_products_df = process_carts(data)
+
+        carts_table = f"{bq_project}.{bq_dataset}.carts"
+        products_table = f"{bq_project}.{bq_dataset}.cart_products"
+
+        ensure_table(carts_table, carts_df)
+        ensure_table(products_table, carts_products_df)
+
+        load_to_bq(carts_df, carts_table)
+        load_to_bq(carts_products_df, products_table)
+
+    else:
+        df = normalize_json(data)
+        table_id = f"{bq_project}.{bq_dataset}.{name}"
+        ensure_table(table_id, df)
+        load_to_bq(df, table_id)
 
 # -------------
 # Main
 # -------------
 
 def main():
+    logging.info("Start of Extract Pipeline")
+    for name, endpoint in endpoints.items():
+        logging.info(f"Processing {name}")
+        extract_endpoint(name, endpoint)
+    logging.info("Pipeline complete")
 
 
 if __name__ == "__main__":
