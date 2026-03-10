@@ -100,7 +100,17 @@ def ensure_table(table_id, df):
     except:
         schema = []
         for col in df.columns:
-            dtype
+            dtype = "STRING"
+
+            if pd.api.type.is_integer_dtype(df[col]):
+                dtype = "INT64" 
+            elif pd.api.type.is_float_dtype(df[col]):
+                dtype = "FLOAT64" 
+            schema.append(bigquery.SchemaField(col, dtype))
+
+        table = bigquery.Table(table_id, schema=schema)
+        client.create_table(table)
+        logging.info(f"Created table: {table_id}")
 
 # -------------
 # Loads df to BigQuery
