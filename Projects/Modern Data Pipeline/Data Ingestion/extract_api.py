@@ -125,6 +125,24 @@ def load_to_bq(df, table_id):
 # Handling for carts
 # -------------
 
+def process_carts(data):
+    carts_df = pd.json_normalize(data)
+    carts_df.columns = carts_df.columns.str.replace(".", "_")
+    carts_products = []
+
+    for cart in data:
+        cart_id = cart["id"]
+        for product in cart["products"]:
+            carts_products.append({
+                "cart_id": cart_id,
+                "product_id": product["productId"],
+                "quantity": product["quantity"]
+            })
+        
+    carts_products_df = pd.DataFrame(carts_products)
+
+    return carts_df, carts_products_df
+
 # -------------
 # Extract
 # -------------
