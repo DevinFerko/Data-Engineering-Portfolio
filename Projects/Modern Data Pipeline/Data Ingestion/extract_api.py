@@ -119,7 +119,7 @@ def ensure_table(table_id, df):
 def load_to_bq(df, table_id):
     job = client.load_table_from_dataframe(df, table_id)
     job.results()
-    print(f"Loaded {len(df)} rows to {table_id}")
+    logging.info(f"Loaded {len(df)} rows into {table_id}")
 
 # -------------
 # Fetch/load per table
