@@ -5,6 +5,7 @@ from google.cloud import bigquery
 import json
 import logging
 import time
+from pathlib import Path
 
 # -------------
 # Configuration
@@ -79,9 +80,14 @@ def normalize_json(data):
 # Saves Raw json
 # -------------
 
+raw_dir = "raw_api"
+Path(raw_dir).mkdir(exist_ok=True)
+
 def save_json(endpoint, data):
-    with open(f"{endpoint}_raw.json", "w") as f:
+    file_path = f"{raw_dir}/{endpoint}_raw.json"
+    with open(file_path, "w") as f:
         json.dump(data, f, indent=2)
+    logging.info(f"Saved raw JSON: {file_path}")
 
 # -------------
 # Loads df to BigQuery
