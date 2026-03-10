@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 from google.cloud import bigquery
 import json
+import logging
+import time
 
 # -------------
 # Configuration
@@ -27,23 +29,42 @@ print(bq_project)
 print(bq_dataset)
 
 # Map endpoints to Table Names
-tables = {
-    "products": f"{bq_project}.{bq_dataset}.products",
-    "carts": f"{bq_project}.{bq_dataset}.carts",
-    "users": f"{bq_project}.{bq_dataset}.userss"
+endpoints = {
+    "products": "products",
+    "carts": "carts",
+    "users": "users"
 }
 
-client = bigquery.Client()
+# BigQuery Client
+client = bigquery.Client(project=bq_project)
+
+retry_limit = 3
 
 # -------------
-# API Fetch Function
+# Logging
+# -------------
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+# -------------
+# API Fetch Function with retries
 # -------------
 
 def fetch_api(endpoint):
     url = f"{api_base}/{endpoint}"
-    response = requests.get(url, headers=headers)
-    response.raise_for_status() #fails if api is down
-    return response.json()
+    for attempt in range(retry_limit):
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status() #fails if api is down
+            logging.info(f"Fetched {endpoint}")
+            return response.json()
+    expect Exception as e:
+        logging.warning(f"Attempt {attempt+1} failed: {e}")
+        time.sleep(2)
+    raise Exception(f"Failed to fetch {endpoint}")    
 
 # -------------
 # Normalize json
