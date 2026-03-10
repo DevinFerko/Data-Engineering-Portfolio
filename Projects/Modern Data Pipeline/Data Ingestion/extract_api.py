@@ -122,7 +122,11 @@ def load_to_bq(df, table_id):
     logging.info(f"Loaded {len(df)} rows into {table_id}")
 
 # -------------
-# Fetch/load per table
+# Handling for carts
+# -------------
+
+# -------------
+# Extract
 # -------------
 
 
