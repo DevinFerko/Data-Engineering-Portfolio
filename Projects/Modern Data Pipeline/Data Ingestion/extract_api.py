@@ -58,6 +58,9 @@ def normalize_json(data):
 # Saves Raw json
 # -------------
 
+def save_json(endpoint, data):
+    with open(f"{endpoint}_raw.json", "w") as f:
+        json.dump(data, f, indent=2)
 
 # -------------
 # Loads df to BigQuery
