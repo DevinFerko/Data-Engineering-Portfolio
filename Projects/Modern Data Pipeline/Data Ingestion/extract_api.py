@@ -90,6 +90,19 @@ def save_json(endpoint, data):
     logging.info(f"Saved raw JSON: {file_path}")
 
 # -------------
+# creates table if doesn't exist
+# -------------
+
+def ensure_table(table_id, df):
+    try:
+        client.get_table(table_id)
+        logging.info(f"Table exists: {table_id}")
+    except:
+        schema = []
+        for col in df.columns:
+            dtype
+
+# -------------
 # Loads df to BigQuery
 # -------------
 
