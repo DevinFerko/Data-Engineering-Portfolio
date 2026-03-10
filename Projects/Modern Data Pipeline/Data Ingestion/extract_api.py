@@ -66,6 +66,10 @@ def save_json(endpoint, data):
 # Loads df to BigQuery
 # -------------
 
+def load_to_bq(df, table_id):
+    job = client.load_table_from_dataframe(df, table_id)
+    job.results()
+    print(f"Loaded {len(df)} rows to {table_id}")
 
 # -------------
 # Fetch/load per table
