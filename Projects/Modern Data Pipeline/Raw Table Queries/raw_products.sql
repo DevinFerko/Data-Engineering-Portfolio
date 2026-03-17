@@ -1,4 +1,6 @@
-CREATE OR REPLACE TABLE `your_project_id.raw.products` (
+-- Used to create or replace Products table
+
+CREATE OR REPLACE TABLE `project_id.raw.products` (
     id INT64,
     title STRING,
     price FLOAT64,
