@@ -6,6 +6,14 @@ WITH OrderCustomerMapping AS (
         O.ord_total,
         O.ord_net,
         O.ord_orderStatusName,
+
+        -- Aditional Fields
+        O.ord_createdOn,
+        O.ord_invoicetaxDate,
+        O.ord_channelId,
+        O.ord_leadSourceId,
+        O.ord_stockStatusCode,
+
         P.par_email,
         P.par_addressFullName,
         P.par_type,
@@ -41,7 +49,22 @@ SELECT
     ord_orderStatusName,
     par_email,
     par_addressFullName AS CustomerName,
-    par_type AS SelectedPartyType
+    par_type AS SelectedPartyType,
+    
+    -- Additions
+    ord_createdOn,
+    ord_invoicetaxDate,
+    ord_channelId,
+    ord_leadSourceId,
+    orl_rowNetValue,
+    orl_rowTaxValue,
+    orl_itemCostValue,
+    ord_stockStatusCode
+
 FROM OrderCustomerMapping
+
+-- Orderline Join
+LEFT JOIN dbo.tblOrderLine ON orl_ord_id = ord_id
+
 WHERE BestEmailRank = 1
 ORDER BY ord_reference ASC;
